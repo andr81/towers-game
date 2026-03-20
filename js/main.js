@@ -36,7 +36,12 @@ class Game {
             backgroundColor: CONFIG.BG_COLOR,
             antialias: true,
         });
-        document.getElementById('game-container').appendChild(this.app.canvas);
+        const container = document.getElementById('game-container');
+        container.appendChild(this.app.canvas);
+
+        // Responsive scaling
+        this._resize();
+        window.addEventListener('resize', () => this._resize());
 
         // Set up path
         this.path = new Path(CONFIG.PATH_WAYPOINTS);
@@ -80,6 +85,15 @@ class Game {
 
         // Make game globally accessible for projectile AoE
         window.game = this;
+    }
+
+    _resize() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const scale = Math.min(w / CONFIG.WIDTH, h / CONFIG.HEIGHT);
+        const canvas = this.app.canvas;
+        canvas.style.width = Math.floor(CONFIG.WIDTH * scale) + 'px';
+        canvas.style.height = Math.floor(CONFIG.HEIGHT * scale) + 'px';
     }
 
     _onStageClick(e) {
