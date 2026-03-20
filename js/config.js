@@ -61,7 +61,7 @@ const CONFIG = {
     // Tower definitions
     TOWERS: {
         archer: {
-            name: 'Лучники',
+            name: 'Пиу-пиу',
             cost: 55,
             range: 95,
             damage: 10,
@@ -76,9 +76,9 @@ const CONFIG = {
             ],
         },
         cannon: {
-            name: 'Пушка',
+            name: 'Бабах',
             cost: 83,
-            range: 80,
+            range: 110,
             damage: 60,
             attackSpeed: 1.5,
             canHitFlying: false,
@@ -87,12 +87,12 @@ const CONFIG = {
             projectileColor: 0xe74c3c,
             aoeRadius: 0, // level 1: no AoE
             upgrades: [
-                { damage: 90, range: 96, cost: 50, aoeRadius: 0 },
-                { damage: 130, range: 108, cost: 77, aoeRadius: 35 },
+                { damage: 90, range: 125, cost: 50, aoeRadius: 0 },
+                { damage: 130, range: 140, cost: 77, aoeRadius: 35 },
             ],
         },
         mage: {
-            name: 'Маг',
+            name: 'Вжух',
             cost: 132,
             range: 120,
             damage: 25,
@@ -112,7 +112,7 @@ const CONFIG = {
     // Enemy definitions
     ENEMIES: {
         grunt: {
-            name: 'Рядовой',
+            name: 'Торопыга',
             hp: 60,
             speed: 3.0,
             gold: 10,
@@ -121,7 +121,7 @@ const CONFIG = {
             size: 10,
         },
         golem: {
-            name: 'Голем',
+            name: 'Шкаф',
             hp: 468,
             speed: 1.3,
             gold: 35,
@@ -130,7 +130,7 @@ const CONFIG = {
             size: 16,
         },
         wraith: {
-            name: 'Призрак',
+            name: 'Летун',
             hp: 96,
             speed: 2.2,
             gold: 20,

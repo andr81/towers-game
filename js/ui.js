@@ -243,7 +243,7 @@ class UI {
         sellBg.stroke({ width: 1, color: 0xe74c3c });
         this.sellBtn.addChild(sellBg);
         this.sellBtnText = new PIXI.Text({
-            text: 'Продать 💰25',
+            text: 'Снести 💰25',
             style: { fontFamily: 'monospace', fontSize: 11, fill: 0xe74c3c },
         });
         this.sellBtnText.x = 6;
@@ -269,7 +269,7 @@ class UI {
         // Upgrade button
         if (tower.canUpgrade()) {
             const cost = tower.getUpgradeCost();
-            this.upgradeBtnText.text = `Улучшить 💰${cost}`;
+            this.upgradeBtnText.text = `Прокачать 💰${cost}`;
             this.upgradeBtn.visible = true;
             this.upgradeBtn.alpha = this.game.gold >= cost ? 1 : 0.4;
             this.upgradeBtn.eventMode = this.game.gold >= cost ? 'static' : 'none';
@@ -278,7 +278,7 @@ class UI {
         }
 
         // Sell button
-        this.sellBtnText.text = `Продать 💰${tower.getSellValue()}`;
+        this.sellBtnText.text = `Снести 💰${tower.getSellValue()}`;
 
         // Background
         this.towerPanelBg.clear();
@@ -324,34 +324,55 @@ class UI {
 
     // ---- Game Screens ----
     _buildScreens() {
-        // Start screen
-        this.startScreen = this._createScreen(
-            'Защита Замка',
-            'Защити замок от волн врагов!\nСтавь башни вдоль дороги и уничтожай монстров.',
-            'Играть',
-            () => this.game.startGame()
-        );
+        this.startPhrases = {
+            titles: ['Замок Хаоса', 'Башни и Слёзы', 'Орда идёт', 'Оборона Днища'],
+            subs: [
+                'Орда лезет, а ты тут один.\nСтавь башни и молись.',
+                'Монстры уже в пути.\nУ тебя есть башни и надежда.',
+                'Замок не защитит себя сам.\nНу, давай, стратег.',
+                'Големы точат кулаки.\nПризраки разминают крылья.',
+            ],
+            btns: ['Погнали!', 'Го!', 'Ну давай', 'Жги!'],
+        };
+        this.victoryPhrases = {
+            titles: ['Красава!', 'Гений!', 'Легенда!', 'Мощь!'],
+            subs: [
+                'Орда разбита!\nМонстры плачут и пишут жалобы.',
+                'Замок стоит. Враги в шоке.\nТвоя мама гордится.',
+                'Ни один голем не прошёл.\nНу, может пара, но неважно.',
+                'Молнии мага выжгли всё.\nДаже траву жалко.',
+            ],
+            btns: ['Ещё разок', 'Повторить!', 'Давай ещё', 'Не остановить'],
+        };
+        this.gameOverPhrases = {
+            titles: ['Ну всё...', 'Упс', 'F', 'Ой'],
+            subs: [
+                'Замок пал. Големы танцуют\nна руинах. Стыдно, брат.',
+                'Монстры устроили вечеринку\nв тронном зале. Без тебя.',
+                'Призраки заселились в замок.\nТеперь это их квартира.',
+                'Пушки молчат, маги сбежали.\nЛучники перешли на сторону врага.',
+            ],
+            btns: ['Реванш!', 'Ещё попытка', 'Не сдамся!', 'Я злой теперь'],
+        };
 
-        // Victory screen
-        this.victoryScreen = this._createScreen(
-            'Победа!',
-            'Все волны врагов отбиты!\nЗамок защищён!',
-            'Играть снова',
-            () => this.game.restart()
-        );
+        this.startScreen = this._createScreen(() => this.game.startGame());
+        this.victoryScreen = this._createScreen(() => this.game.restart());
         this.victoryScreen.visible = false;
-
-        // Game over screen
-        this.gameOverScreen = this._createScreen(
-            'Поражение',
-            'Замок пал...\nВраги прорвались сквозь оборону.',
-            'Попробовать снова',
-            () => this.game.restart()
-        );
+        this.gameOverScreen = this._createScreen(() => this.game.restart());
         this.gameOverScreen.visible = false;
     }
 
-    _createScreen(title, subtitle, btnText, onClick) {
+    _randomFrom(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    _fillScreen(screen, phrases) {
+        screen._titleText.text = this._randomFrom(phrases.titles);
+        screen._subText.text = this._randomFrom(phrases.subs);
+        screen._btnLabel.text = this._randomFrom(phrases.btns);
+    }
+
+    _createScreen(onClick) {
         const screen = new PIXI.Container();
 
         // Overlay
@@ -361,60 +382,61 @@ class UI {
         screen.addChild(overlay);
 
         // Title
-        const titleText = new PIXI.Text({
-            text: title,
+        screen._titleText = new PIXI.Text({
+            text: '',
             style: {
                 fontFamily: 'monospace',
-                fontSize: 32,
+                fontSize: 36,
                 fill: 0xffffff,
                 fontWeight: 'bold',
+                align: 'center',
                 dropShadow: { color: 0x000000, blur: 4, distance: 2 },
             },
         });
-        titleText.anchor.set(0.5);
-        titleText.x = CONFIG.WIDTH / 2;
-        titleText.y = CONFIG.HEIGHT / 2 - 80;
-        screen.addChild(titleText);
+        screen._titleText.anchor.set(0.5);
+        screen._titleText.x = CONFIG.WIDTH / 2;
+        screen._titleText.y = CONFIG.HEIGHT / 2 - 80;
+        screen.addChild(screen._titleText);
 
         // Subtitle
-        const subText = new PIXI.Text({
-            text: subtitle,
+        screen._subText = new PIXI.Text({
+            text: '',
             style: {
                 fontFamily: 'monospace',
-                fontSize: 14,
+                fontSize: 16,
                 fill: 0xaaaaaa,
                 align: 'center',
-                lineHeight: 22,
+                lineHeight: 24,
                 wordWrap: true,
                 wordWrapWidth: 340,
             },
         });
-        subText.anchor.set(0.5);
-        subText.x = CONFIG.WIDTH / 2;
-        subText.y = CONFIG.HEIGHT / 2 - 10;
-        screen.addChild(subText);
+        screen._subText.anchor.set(0.5);
+        screen._subText.x = CONFIG.WIDTH / 2;
+        screen._subText.y = CONFIG.HEIGHT / 2 - 5;
+        screen.addChild(screen._subText);
 
         // Button
         const btn = new PIXI.Container();
         const btnBg = new PIXI.Graphics();
-        btnBg.roundRect(-90, -18, 180, 36, 8);
+        btnBg.roundRect(-90, -22, 180, 44, 8);
         btnBg.fill(0x2c3e50);
-        btnBg.roundRect(-90, -18, 180, 36, 8);
+        btnBg.roundRect(-90, -22, 180, 44, 8);
         btnBg.stroke({ width: 2, color: 0x3498db });
         btn.addChild(btnBg);
 
-        const btnLabel = new PIXI.Text({
-            text: btnText,
-            style: { fontFamily: 'monospace', fontSize: 16, fill: 0x3498db, fontWeight: 'bold' },
+        screen._btnLabel = new PIXI.Text({
+            text: '',
+            style: { fontFamily: 'monospace', fontSize: 18, fill: 0x3498db, fontWeight: 'bold' },
         });
-        btnLabel.anchor.set(0.5);
-        btn.addChild(btnLabel);
+        screen._btnLabel.anchor.set(0.5);
+        btn.addChild(screen._btnLabel);
 
         btn.x = CONFIG.WIDTH / 2;
-        btn.y = CONFIG.HEIGHT / 2 + 60;
+        btn.y = CONFIG.HEIGHT / 2 + 70;
         btn.eventMode = 'static';
         btn.cursor = 'pointer';
-        btn.hitArea = new PIXI.Rectangle(-90, -18, 180, 36);
+        btn.hitArea = new PIXI.Rectangle(-90, -22, 180, 44);
 
         btn.on('pointerover', () => { btnBg.tint = 0x44aaff; });
         btn.on('pointerout', () => { btnBg.tint = 0xffffff; });
@@ -426,16 +448,19 @@ class UI {
     }
 
     showStart() {
+        this._fillScreen(this.startScreen, this.startPhrases);
         this.startScreen.visible = true;
         this.victoryScreen.visible = false;
         this.gameOverScreen.visible = false;
     }
 
     showVictory() {
+        this._fillScreen(this.victoryScreen, this.victoryPhrases);
         this.victoryScreen.visible = true;
     }
 
     showGameOver() {
+        this._fillScreen(this.gameOverScreen, this.gameOverPhrases);
         this.gameOverScreen.visible = true;
     }
 

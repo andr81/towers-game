@@ -34,21 +34,21 @@ class Tower {
         this.container.x = this.x;
         this.container.y = this.y;
 
-        // Range indicator (hidden by default)
+        // Range indicator — always visible (subtle), brighter on select
         this.rangeCircle = new PIXI.Graphics();
-        this._drawRangeCircle();
-        this.rangeCircle.visible = false;
+        this.rangeCircle.eventMode = 'none';
+        this._drawRangeCircle(false);
         this.container.addChild(this.rangeCircle);
 
         this._buildGraphics();
     }
 
-    _drawRangeCircle() {
+    _drawRangeCircle(selected) {
         this.rangeCircle.clear();
         this.rangeCircle.circle(0, 0, this.range);
-        this.rangeCircle.fill({ color: this.color, alpha: 0.08 });
+        this.rangeCircle.fill({ color: this.color, alpha: selected ? 0.12 : 0.04 });
         this.rangeCircle.circle(0, 0, this.range);
-        this.rangeCircle.stroke({ width: 1, color: this.color, alpha: 0.3 });
+        this.rangeCircle.stroke({ width: 1, color: this.color, alpha: selected ? 0.4 : 0.12 });
     }
 
     _buildGraphics() {
@@ -136,7 +136,7 @@ class Tower {
         if (upg.slowFactor !== undefined) this.slowFactor = upg.slowFactor;
 
         this._buildGraphics();
-        this._drawRangeCircle();
+        this._drawRangeCircle(false);
         return true;
     }
 
@@ -205,7 +205,7 @@ class Tower {
     }
 
     showRange(show) {
-        this.rangeCircle.visible = show;
+        this._drawRangeCircle(show);
     }
 
     destroy() {
