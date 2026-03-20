@@ -38,10 +38,10 @@ class MapRenderer {
         const deco = new PIXI.Graphics();
         // Dark trees/bushes scattered around
         const treePositions = [
-            { x: 80, y: 30 }, { x: 150, y: 180 }, { x: 50, y: 350 },
-            { x: 900, y: 30 }, { x: 950, y: 200 }, { x: 100, y: 500 },
-            { x: 500, y: 500 }, { x: 400, y: 50 }, { x: 700, y: 340 },
-            { x: 850, y: 550 }, { x: 300, y: 490 }, { x: 150, y: 440 },
+            { x: 30, y: 60 }, { x: 370, y: 160 }, { x: 30, y: 340 },
+            { x: 370, y: 330 }, { x: 30, y: 130 }, { x: 370, y: 500 },
+            { x: 30, y: 650 }, { x: 370, y: 660 }, { x: 200, y: 600 },
+            { x: 300, y: 760 }, { x: 100, y: 760 }, { x: 370, y: 50 },
         ];
         for (const pos of treePositions) {
             // Trunk

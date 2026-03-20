@@ -3,9 +3,9 @@
 // ============================================================
 
 const CONFIG = {
-    // Canvas
-    WIDTH: 1024,
-    HEIGHT: 640,
+    // Canvas (portrait orientation for mobile)
+    WIDTH: 400,
+    HEIGHT: 800,
     BG_COLOR: 0x1a1a2e,
 
     // Starting resources
@@ -23,35 +23,38 @@ const CONFIG = {
     // Upgrade cost multiplier (60% of base)
     UPGRADE_COST_MULTIPLIER: 0.6,
 
-    // Path waypoints for zigzag (in pixels)
+    // Path waypoints for vertical zigzag (top to bottom)
     PATH_WAYPOINTS: [
-        { x: -30, y: 80 },
-        { x: 800, y: 80 },
-        { x: 800, y: 260 },
-        { x: 200, y: 260 },
-        { x: 200, y: 440 },
-        { x: 800, y: 440 },
-        { x: 900, y: 440 },
-        { x: 960, y: 500 },
+        { x: 200, y: -20 },
+        { x: 200, y: 90 },
+        { x: 350, y: 90 },
+        { x: 350, y: 250 },
+        { x: 50, y: 250 },
+        { x: 50, y: 410 },
+        { x: 350, y: 410 },
+        { x: 350, y: 570 },
+        { x: 50, y: 570 },
+        { x: 50, y: 670 },
+        { x: 200, y: 730 },
     ],
 
     // Tower placement spots
     TOWER_SPOTS: [
-        { x: 400, y: 150 },
-        { x: 650, y: 150 },
-        { x: 700, y: 190 },
-        { x: 350, y: 190 },
-        { x: 500, y: 330 },
-        { x: 300, y: 330 },
-        { x: 600, y: 370 },
-        { x: 700, y: 510 },
+        { x: 280, y: 55 },
+        { x: 120, y: 160 },
+        { x: 200, y: 170 },
+        { x: 200, y: 330 },
+        { x: 280, y: 325 },
+        { x: 120, y: 480 },
+        { x: 200, y: 490 },
+        { x: 280, y: 630 },
     ],
 
     // Castle position
-    CASTLE: { x: 960, y: 500 },
+    CASTLE: { x: 200, y: 730 },
 
     // Road
-    ROAD_WIDTH: 40,
+    ROAD_WIDTH: 32,
     ROAD_COLOR: 0x8B7355,
     ROAD_BORDER_COLOR: 0x6B5335,
 
@@ -60,7 +63,7 @@ const CONFIG = {
         archer: {
             name: 'Лучники',
             cost: 55,
-            range: 130,
+            range: 95,
             damage: 10,
             attackSpeed: 0.3, // seconds between shots
             canHitFlying: true,
@@ -68,14 +71,14 @@ const CONFIG = {
             projectileSpeed: 8,
             projectileColor: 0xf1c40f,
             upgrades: [
-                { damage: 15, attackSpeed: 0.25, range: 140, cost: 33 },
-                { damage: 22, attackSpeed: 0.2, range: 150, cost: 50 },
+                { damage: 15, attackSpeed: 0.25, range: 105, cost: 33 },
+                { damage: 22, attackSpeed: 0.2, range: 115, cost: 50 },
             ],
         },
         cannon: {
             name: 'Пушка',
             cost: 83,
-            range: 110,
+            range: 80,
             damage: 60,
             attackSpeed: 1.5,
             canHitFlying: false,
@@ -84,14 +87,14 @@ const CONFIG = {
             projectileColor: 0xe74c3c,
             aoeRadius: 0, // level 1: no AoE
             upgrades: [
-                { damage: 90, range: 132, cost: 50, aoeRadius: 0 },
-                { damage: 130, range: 145, cost: 77, aoeRadius: 40 },
+                { damage: 90, range: 96, cost: 50, aoeRadius: 0 },
+                { damage: 130, range: 108, cost: 77, aoeRadius: 35 },
             ],
         },
         mage: {
             name: 'Маг',
             cost: 132,
-            range: 160,
+            range: 120,
             damage: 25,
             attackSpeed: 0.8,
             canHitFlying: true,
@@ -100,8 +103,8 @@ const CONFIG = {
             projectileColor: 0x8e44ad,
             slowFactor: 0, // level 1: no slow
             upgrades: [
-                { damage: 35, chainTargets: 4, range: 170, cost: 79, slowFactor: 0 },
-                { damage: 50, chainTargets: 5, range: 180, cost: 121, slowFactor: 0.4 },
+                { damage: 35, chainTargets: 4, range: 130, cost: 79, slowFactor: 0 },
+                { damage: 50, chainTargets: 5, range: 140, cost: 121, slowFactor: 0.4 },
             ],
         },
     },

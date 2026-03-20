@@ -25,55 +25,55 @@ class UI {
 
         // Background bar
         const bar = new PIXI.Graphics();
-        bar.rect(0, 0, CONFIG.WIDTH, 40);
+        bar.rect(0, 0, CONFIG.WIDTH, 36);
         bar.fill({ color: 0x0a0a1a, alpha: 0.85 });
-        bar.rect(0, 40, CONFIG.WIDTH, 1);
+        bar.rect(0, 36, CONFIG.WIDTH, 1);
         bar.fill({ color: 0x333366, alpha: 0.5 });
         this.hudContainer.addChild(bar);
 
         // Gold
         this.goldText = new PIXI.Text({
             text: '💰 200',
-            style: { fontFamily: 'monospace', fontSize: 18, fill: 0xf1c40f, fontWeight: 'bold' },
+            style: { fontFamily: 'monospace', fontSize: 14, fill: 0xf1c40f, fontWeight: 'bold' },
         });
-        this.goldText.x = 20;
+        this.goldText.x = 8;
         this.goldText.y = 8;
         this.hudContainer.addChild(this.goldText);
 
         // Lives
         this.livesText = new PIXI.Text({
             text: '❤️ 5',
-            style: { fontFamily: 'monospace', fontSize: 18, fill: 0xe74c3c, fontWeight: 'bold' },
+            style: { fontFamily: 'monospace', fontSize: 14, fill: 0xe74c3c, fontWeight: 'bold' },
         });
-        this.livesText.x = 180;
+        this.livesText.x = 120;
         this.livesText.y = 8;
         this.hudContainer.addChild(this.livesText);
 
         // Wave
         this.waveText = new PIXI.Text({
-            text: 'Волна: 0/10',
-            style: { fontFamily: 'monospace', fontSize: 16, fill: 0xcccccc },
+            text: '0/10',
+            style: { fontFamily: 'monospace', fontSize: 14, fill: 0xcccccc },
         });
-        this.waveText.x = 350;
-        this.waveText.y = 10;
+        this.waveText.x = 210;
+        this.waveText.y = 8;
         this.hudContainer.addChild(this.waveText);
 
         // Timer
         this.timerText = new PIXI.Text({
             text: '',
-            style: { fontFamily: 'monospace', fontSize: 16, fill: 0xaaaaff },
+            style: { fontFamily: 'monospace', fontSize: 13, fill: 0xaaaaff },
         });
-        this.timerText.x = 600;
-        this.timerText.y = 10;
+        this.timerText.x = 300;
+        this.timerText.y = 9;
         this.hudContainer.addChild(this.timerText);
     }
 
     updateHUD(gold, lives, wave, timer) {
         this.goldText.text = `💰 ${gold}`;
         this.livesText.text = `❤️ ${lives}`;
-        this.waveText.text = `Волна: ${wave}/${CONFIG.TOTAL_WAVES}`;
+        this.waveText.text = `${wave}/${CONFIG.TOTAL_WAVES}`;
         if (timer > 0) {
-            this.timerText.text = `Следующая волна: ${Math.ceil(timer)}с`;
+            this.timerText.text = `⏱${Math.ceil(timer)}с`;
         } else {
             this.timerText.text = '';
         }
@@ -95,44 +95,44 @@ class UI {
         types.forEach((type, i) => {
             const def = CONFIG.TOWERS[type];
             const btn = new PIXI.Container();
-            btn.x = i * 90;
+            btn.x = i * 78;
             btn.y = 0;
 
             // Button background
             const bg = new PIXI.Graphics();
-            bg.roundRect(0, 0, 80, 70, 6);
+            bg.roundRect(0, 0, 70, 62, 6);
             bg.fill({ color: 0x1a1a2e, alpha: 0.95 });
-            bg.roundRect(0, 0, 80, 70, 6);
+            bg.roundRect(0, 0, 70, 62, 6);
             bg.stroke({ width: 2, color: def.color, alpha: 0.6 });
             btn.addChild(bg);
 
             // Tower icon
             const icon = new PIXI.Graphics();
-            icon.circle(40, 22, 12);
+            icon.circle(35, 18, 10);
             icon.fill(def.color);
             btn.addChild(icon);
 
             // Name
             const nameText = new PIXI.Text({
                 text: def.name,
-                style: { fontFamily: 'monospace', fontSize: 11, fill: 0xcccccc },
+                style: { fontFamily: 'monospace', fontSize: 10, fill: 0xcccccc },
             });
-            nameText.x = 40 - nameText.width / 2;
-            nameText.y = 38;
+            nameText.x = 35 - nameText.width / 2;
+            nameText.y = 32;
             btn.addChild(nameText);
 
             // Cost
             const costText = new PIXI.Text({
                 text: `💰${def.cost}`,
-                style: { fontFamily: 'monospace', fontSize: 12, fill: 0xf1c40f, fontWeight: 'bold' },
+                style: { fontFamily: 'monospace', fontSize: 11, fill: 0xf1c40f, fontWeight: 'bold' },
             });
-            costText.x = 40 - costText.width / 2;
-            costText.y = 52;
+            costText.x = 35 - costText.width / 2;
+            costText.y = 46;
             btn.addChild(costText);
 
             btn.eventMode = 'static';
             btn.cursor = 'pointer';
-            btn.hitArea = new PIXI.Rectangle(0, 0, 80, 70);
+            btn.hitArea = new PIXI.Rectangle(0, 0, 70, 62);
             btn.towerType = type;
             btn.bgGraphics = bg;
 
@@ -143,9 +143,9 @@ class UI {
         });
 
         // Panel background
-        this.buildMenuBg.roundRect(-10, -10, 290, 90, 8);
+        this.buildMenuBg.roundRect(-10, -10, 254, 82, 8);
         this.buildMenuBg.fill({ color: 0x0a0a1a, alpha: 0.9 });
-        this.buildMenuBg.roundRect(-10, -10, 290, 90, 8);
+        this.buildMenuBg.roundRect(-10, -10, 254, 82, 8);
         this.buildMenuBg.stroke({ width: 1, color: 0x333366, alpha: 0.5 });
     }
 
@@ -154,11 +154,11 @@ class UI {
         this.selectedSpot = spot;
 
         // Position menu near spot
-        let menuX = spot.x - 135;
+        let menuX = spot.x - 117;
         let menuY = spot.y + 30;
-        if (menuY + 90 > CONFIG.HEIGHT) menuY = spot.y - 100;
+        if (menuY + 82 > CONFIG.HEIGHT) menuY = spot.y - 92;
         if (menuX < 10) menuX = 10;
-        if (menuX + 290 > CONFIG.WIDTH) menuX = CONFIG.WIDTH - 300;
+        if (menuX + 254 > CONFIG.WIDTH) menuX = CONFIG.WIDTH - 264;
 
         this.buildMenu.x = menuX;
         this.buildMenu.y = menuY;
@@ -249,8 +249,8 @@ class UI {
         this.sellBtnText.x = 6;
         this.sellBtnText.y = 6;
         this.sellBtn.addChild(this.sellBtnText);
-        this.sellBtn.x = 120;
-        this.sellBtn.y = 50;
+        this.sellBtn.x = 0;
+        this.sellBtn.y = 80;
         this.sellBtn.eventMode = 'static';
         this.sellBtn.cursor = 'pointer';
         this.sellBtn.hitArea = new PIXI.Rectangle(0, 0, 100, 28);
@@ -264,7 +264,7 @@ class UI {
         tower.showRange(true);
 
         this.towerNameText.text = `${tower.name} (Ур. ${tower.level})`;
-        this.towerStatsText.text = `Урон: ${tower.damage}  Скорость: ${tower.attackSpeed}с  Радиус: ${tower.range}`;
+        this.towerStatsText.text = `Урон:${tower.damage} Скор:${tower.attackSpeed}с`;
 
         // Upgrade button
         if (tower.canUpgrade()) {
@@ -282,17 +282,17 @@ class UI {
 
         // Background
         this.towerPanelBg.clear();
-        this.towerPanelBg.roundRect(-10, -10, 240, 95, 8);
+        this.towerPanelBg.roundRect(-10, -10, 140, 125, 8);
         this.towerPanelBg.fill({ color: 0x0a0a1a, alpha: 0.9 });
-        this.towerPanelBg.roundRect(-10, -10, 240, 95, 8);
+        this.towerPanelBg.roundRect(-10, -10, 140, 125, 8);
         this.towerPanelBg.stroke({ width: 1, color: 0x333366, alpha: 0.5 });
 
         // Position
         let px = tower.x + 30;
-        let py = tower.y - 50;
-        if (px + 240 > CONFIG.WIDTH) px = tower.x - 260;
-        if (py < 50) py = tower.y + 30;
-        if (py + 95 > CONFIG.HEIGHT) py = CONFIG.HEIGHT - 100;
+        let py = tower.y - 60;
+        if (px + 140 > CONFIG.WIDTH) px = tower.x - 160;
+        if (py < 45) py = tower.y + 30;
+        if (py + 125 > CONFIG.HEIGHT) py = CONFIG.HEIGHT - 130;
         this.towerPanel.x = px;
         this.towerPanel.y = py;
         this.towerPanel.visible = true;
@@ -365,7 +365,7 @@ class UI {
             text: title,
             style: {
                 fontFamily: 'monospace',
-                fontSize: 48,
+                fontSize: 32,
                 fill: 0xffffff,
                 fontWeight: 'bold',
                 dropShadow: { color: 0x000000, blur: 4, distance: 2 },
@@ -381,10 +381,12 @@ class UI {
             text: subtitle,
             style: {
                 fontFamily: 'monospace',
-                fontSize: 18,
+                fontSize: 14,
                 fill: 0xaaaaaa,
                 align: 'center',
-                lineHeight: 26,
+                lineHeight: 22,
+                wordWrap: true,
+                wordWrapWidth: 340,
             },
         });
         subText.anchor.set(0.5);
@@ -395,15 +397,15 @@ class UI {
         // Button
         const btn = new PIXI.Container();
         const btnBg = new PIXI.Graphics();
-        btnBg.roundRect(-100, -20, 200, 40, 8);
+        btnBg.roundRect(-90, -18, 180, 36, 8);
         btnBg.fill(0x2c3e50);
-        btnBg.roundRect(-100, -20, 200, 40, 8);
+        btnBg.roundRect(-90, -18, 180, 36, 8);
         btnBg.stroke({ width: 2, color: 0x3498db });
         btn.addChild(btnBg);
 
         const btnLabel = new PIXI.Text({
             text: btnText,
-            style: { fontFamily: 'monospace', fontSize: 18, fill: 0x3498db, fontWeight: 'bold' },
+            style: { fontFamily: 'monospace', fontSize: 16, fill: 0x3498db, fontWeight: 'bold' },
         });
         btnLabel.anchor.set(0.5);
         btn.addChild(btnLabel);
@@ -412,7 +414,7 @@ class UI {
         btn.y = CONFIG.HEIGHT / 2 + 60;
         btn.eventMode = 'static';
         btn.cursor = 'pointer';
-        btn.hitArea = new PIXI.Rectangle(-100, -20, 200, 40);
+        btn.hitArea = new PIXI.Rectangle(-90, -18, 180, 36);
 
         btn.on('pointerover', () => { btnBg.tint = 0x44aaff; });
         btn.on('pointerout', () => { btnBg.tint = 0xffffff; });
