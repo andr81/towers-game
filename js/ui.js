@@ -136,7 +136,7 @@ class UI {
             btn.towerType = type;
             btn.bgGraphics = bg;
 
-            btn.on('pointerdown', () => this._onBuildClick(type));
+            btn.on('pointerdown', (e) => { this.game._uiClicked = true; this._onBuildClick(type); });
 
             this.buildMenu.addChild(btn);
             this.buildButtons.push(btn);
@@ -231,7 +231,7 @@ class UI {
         this.upgradeBtn.eventMode = 'static';
         this.upgradeBtn.cursor = 'pointer';
         this.upgradeBtn.hitArea = new PIXI.Rectangle(0, 0, 110, 28);
-        this.upgradeBtn.on('pointerdown', () => this._onUpgradeClick());
+        this.upgradeBtn.on('pointerdown', (e) => { this.game._uiClicked = true; this._onUpgradeClick(); });
         this.towerPanel.addChild(this.upgradeBtn);
 
         // Sell button
@@ -254,7 +254,7 @@ class UI {
         this.sellBtn.eventMode = 'static';
         this.sellBtn.cursor = 'pointer';
         this.sellBtn.hitArea = new PIXI.Rectangle(0, 0, 100, 28);
-        this.sellBtn.on('pointerdown', () => this._onSellClick());
+        this.sellBtn.on('pointerdown', (e) => { e.stopPropagation(); this._onSellClick(); });
         this.towerPanel.addChild(this.sellBtn);
     }
 
@@ -309,6 +309,7 @@ class UI {
     _onSellClick() {
         if (!this.selectedTower) return;
         this.game.sellTower(this.selectedTower);
+        this.selectedTower = null;
         this.closePanels();
     }
 
@@ -440,7 +441,7 @@ class UI {
 
         btn.on('pointerover', () => { btnBg.tint = 0x44aaff; });
         btn.on('pointerout', () => { btnBg.tint = 0xffffff; });
-        btn.on('pointerdown', onClick);
+        btn.on('pointerdown', (e) => { this.game._uiClicked = true; onClick(); });
 
         screen.addChild(btn);
         this.uiLayer.addChild(screen);

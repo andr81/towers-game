@@ -118,9 +118,6 @@ class MapRenderer {
 
             g.x = spot.x;
             g.y = spot.y;
-            g.eventMode = 'static';
-            g.cursor = 'pointer';
-            g.hitArea = new PIXI.Circle(0, 0, 22);
             g.spot = spot;
 
             this.mapLayer.addChild(g);
@@ -177,4 +174,5 @@ class MapRenderer {
         const sg = this.spotGraphics.find(g => g.spot === spot);
         if (sg) sg.visible = true;
     }
+
 }

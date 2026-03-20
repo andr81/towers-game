@@ -67,18 +67,22 @@ class Game {
         this.ui = new UI(this.app, this);
         this.ui.showStart();
 
-        // Click handler for empty spots and towers
-        this.app.stage.eventMode = 'static';
-        this.app.stage.hitArea = new PIXI.Rectangle(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
-        this.app.stage.on('pointerdown', (e) => this._onStageClick(e));
+        // Make game/effects layers transparent to clicks
+        this.gameLayer.eventMode = 'none';
+        this.effectsLayer.eventMode = 'none';
 
-        // Spot click handlers
-        for (const sg of this.mapRenderer.spotGraphics) {
-            sg.on('pointerdown', (e) => {
-                e.stopPropagation();
-                this._onSpotClick(sg.spot);
+        // Use canvas DOM click for spot/tower interaction
+        this._uiClicked = false;
+        this.app.canvas.addEventListener('pointerdown', (e) => {
+            // Delay slightly so Pixi UI buttons fire first and set the flag
+            requestAnimationFrame(() => {
+                if (this._uiClicked) {
+                    this._uiClicked = false;
+                    return;
+                }
+                this._onCanvasClick(e);
             });
-        }
+        });
 
         // Game loop
         this.app.ticker.add((ticker) => this._update(ticker.deltaTime / 60));
@@ -96,33 +100,43 @@ class Game {
         canvas.style.height = Math.floor(CONFIG.HEIGHT * scale) + 'px';
     }
 
-    _onStageClick(e) {
+    _onCanvasClick(e) {
         if (this.state !== STATES.PLAYING) return;
 
+        // Convert DOM coordinates to game coordinates
+        const rect = this.app.canvas.getBoundingClientRect();
+        const scaleX = CONFIG.WIDTH / rect.width;
+        const scaleY = CONFIG.HEIGHT / rect.height;
+        const gx = (e.clientX - rect.left) * scaleX;
+        const gy = (e.clientY - rect.top) * scaleY;
+
         // Check if clicked on a tower
-        const pos = e.global;
         for (const tower of this.towerManager.towers) {
-            const dx = pos.x - tower.x;
-            const dy = pos.y - tower.y;
-            if (Math.sqrt(dx * dx + dy * dy) < 25) {
-                e.stopPropagation();
+            const dx = gx - tower.x;
+            const dy = gy - tower.y;
+            if (Math.sqrt(dx * dx + dy * dy) < 28) {
                 this.ui.showTowerPanel(tower);
+                return;
+            }
+        }
+
+        // Check if clicked on a tower spot
+        for (const spot of CONFIG.TOWER_SPOTS) {
+            const dx = gx - spot.x;
+            const dy = gy - spot.y;
+            if (Math.sqrt(dx * dx + dy * dy) < 28) {
+                const existing = this.towerManager.getTowerAtSpot(spot);
+                if (existing) {
+                    this.ui.showTowerPanel(existing);
+                } else {
+                    this.ui.showBuildMenu(spot);
+                }
                 return;
             }
         }
 
         // Otherwise close panels
         this.ui.closePanels();
-    }
-
-    _onSpotClick(spot) {
-        if (this.state !== STATES.PLAYING) return;
-        const existingTower = this.towerManager.getTowerAtSpot(spot);
-        if (existingTower) {
-            this.ui.showTowerPanel(existingTower);
-        } else {
-            this.ui.showBuildMenu(spot);
-        }
     }
 
     startGame() {
@@ -172,9 +186,10 @@ class Game {
     }
 
     sellTower(tower) {
+        const spot = tower.spot;
         const value = this.towerManager.sell(tower);
         this.gold += value;
-        this.mapRenderer.showSpot(tower.spot);
+        this.mapRenderer.showSpot(spot);
     }
 
     spawnAoeEffect(x, y, radius) {
