@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Замок Хаоса — Tower Defense</title>
     <style>
         * {
@@ -40,14 +43,14 @@
     <!-- Pixi.js v8 from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/pixi.js@8/dist/pixi.min.js"></script>
 
-    <!-- Game scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/path.js"></script>
-    <script src="js/enemies.js"></script>
-    <script src="js/projectiles.js"></script>
-    <script src="js/towers.js"></script>
-    <script src="js/renderer.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/main.js"></script>
+    <!-- Game scripts (cache-bust via version param) -->
+    <script>const v = Date.now();</script>
+    <script>
+        const scripts = [
+            'js/config.js', 'js/path.js', 'js/enemies.js', 'js/projectiles.js',
+            'js/towers.js', 'js/renderer.js', 'js/ui.js', 'js/main.js'
+        ];
+        scripts.forEach(s => document.write(`<script src="${s}?v=${v}"><\/script>`));
+    </script>
 </body>
 </html>
