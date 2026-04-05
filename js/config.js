@@ -124,15 +124,15 @@ const CONFIG = {
             cost: 132,
             range: 120,
             damage: 25,
-            attackSpeed: 0.8,
+            attackSpeed: 0.72,
             canHitFlying: true,
             color: 0x9b59b6,
             chainTargets: 3,
             projectileColor: 0x8e44ad,
             slowFactor: 0, // level 1: no slow
             upgrades: [
-                { damage: 35, chainTargets: 4, range: 130, cost: 79, slowFactor: 0 },
-                { damage: 50, chainTargets: 5, range: 140, cost: 121, slowFactor: 0.55 },
+                { damage: 35, chainTargets: 4, range: 130, cost: 91, attackSpeed: 0.72, slowFactor: 0 },
+                { damage: 50, chainTargets: 5, range: 140, cost: 139, slowFactor: 0.55 },
             ],
         },
     },
