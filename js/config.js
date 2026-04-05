@@ -2,6 +2,34 @@
 // config.js — All game constants and balance parameters
 // ============================================================
 
+// ---- Progress (localStorage) ----
+const Progress = {
+    _key: 'chaos_castle_progress',
+    load() {
+        try {
+            const data = JSON.parse(localStorage.getItem(this._key));
+            return data && data.completedLevels ? data : { completedLevels: [] };
+        } catch { return { completedLevels: [] }; }
+    },
+    save(data) {
+        localStorage.setItem(this._key, JSON.stringify(data));
+    },
+    isLevelUnlocked(levelId) {
+        if (levelId === 1) return true;
+        return this.load().completedLevels.includes(levelId - 1);
+    },
+    completeLevel(levelId) {
+        const data = this.load();
+        if (!data.completedLevels.includes(levelId)) {
+            data.completedLevels.push(levelId);
+            this.save(data);
+        }
+    },
+    isLevelCompleted(levelId) {
+        return this.load().completedLevels.includes(levelId);
+    },
+};
+
 const CONFIG = {
     // Canvas (portrait orientation for mobile)
     WIDTH: 400,
@@ -191,3 +219,174 @@ const CONFIG = {
         ], hpMultiplier: 1.8 },
     ],
 };
+
+// ---- Level definitions ----
+const LEVELS = [
+    {
+        id: 1,
+        name: 'Первый рубеж',
+        mapX: 200, mapY: 620,
+        startGold: 200,
+        startLives: 5,
+        waveCountdown: 5,
+        firstWaveCountdown: 5,
+        castle: { x: 200, y: 730 },
+        pathWaypoints: [
+            { x: 200, y: -20 },
+            { x: 200, y: 90 },
+            { x: 350, y: 90 },
+            { x: 350, y: 250 },
+            { x: 50, y: 250 },
+            { x: 50, y: 410 },
+            { x: 350, y: 410 },
+            { x: 350, y: 570 },
+            { x: 50, y: 570 },
+            { x: 50, y: 670 },
+            { x: 200, y: 730 },
+        ],
+        towerSpots: [
+            { x: 280, y: 55 },
+            { x: 120, y: 160 },
+            { x: 200, y: 170 },
+            { x: 200, y: 330 },
+            { x: 280, y: 325 },
+            { x: 120, y: 480 },
+            { x: 200, y: 490 },
+            { x: 280, y: 630 },
+        ],
+        waves: [
+            { groups: [{ type: 'grunt', count: 6, interval: 0.7 }] },
+            { groups: [{ type: 'grunt', count: 8, interval: 0.6 }] },
+            { groups: [{ type: 'grunt', count: 12, interval: 0.5 }] },
+            { groups: [
+                { type: 'grunt', count: 6, interval: 0.6 },
+                { type: 'golem', count: 2, interval: 1.8 },
+            ]},
+            { groups: [
+                { type: 'grunt', count: 5, interval: 0.5 },
+                { type: 'golem', count: 4, interval: 1.5 },
+            ]},
+            { groups: [
+                { type: 'grunt', count: 7, interval: 0.5 },
+                { type: 'golem', count: 3, interval: 1.8 },
+                { type: 'wraith', count: 4, interval: 1.0 },
+            ]},
+            { groups: [
+                { type: 'grunt', count: 10, interval: 0.4 },
+                { type: 'golem', count: 3, interval: 1.5 },
+                { type: 'wraith', count: 6, interval: 0.8 },
+            ]},
+            { groups: [
+                { type: 'grunt', count: 10, interval: 0.4 },
+                { type: 'golem', count: 4, interval: 1.3 },
+                { type: 'wraith', count: 5, interval: 0.8 },
+            ], hpMultiplier: 1.5 },
+            { groups: [
+                { type: 'grunt', count: 12, interval: 0.35 },
+                { type: 'golem', count: 5, interval: 1.3 },
+                { type: 'wraith', count: 7, interval: 0.7 },
+            ], hpMultiplier: 1.5 },
+            { groups: [
+                { type: 'grunt', count: 18, interval: 0.3 },
+                { type: 'golem', count: 6, interval: 1.0 },
+                { type: 'wraith', count: 10, interval: 0.6 },
+                { type: 'golem', count: 1, interval: 0, hpMultiplier: 3 },
+            ], hpMultiplier: 1.8 },
+        ],
+    },
+    {
+        id: 2,
+        name: 'Тёмный лес',
+        mapX: 100, mapY: 500,
+        startGold: 210,
+        startLives: 4,
+        waveCountdown: 5,
+        firstWaveCountdown: 5,
+        castle: { x: 200, y: 730 },
+        paths: [
+            // Left branch
+            [
+                { x: 200, y: -20 },
+                { x: 200, y: 100 },
+                { x: 70, y: 150 },
+                { x: 70, y: 350 },
+                { x: 140, y: 450 },
+                { x: 70, y: 550 },
+                { x: 200, y: 660 },
+                { x: 200, y: 730 },
+            ],
+            // Right branch
+            [
+                { x: 200, y: -20 },
+                { x: 200, y: 100 },
+                { x: 330, y: 150 },
+                { x: 330, y: 350 },
+                { x: 260, y: 450 },
+                { x: 330, y: 550 },
+                { x: 200, y: 660 },
+                { x: 200, y: 730 },
+            ],
+        ],
+        towerSpots: [
+            // Top — shared entry
+            { x: 120, y: 55 },
+            { x: 280, y: 55 },
+            // Left branch
+            { x: 155, y: 230 },
+            { x: 155, y: 400 },
+            { x: 155, y: 520 },
+            // Right branch
+            { x: 245, y: 230 },
+            { x: 245, y: 400 },
+            { x: 245, y: 520 },
+            // Bottom — convergence
+            { x: 120, y: 640 },
+            { x: 280, y: 640 },
+        ],
+        waves: [
+            // Wave 1: 5 grunts
+            { groups: [{ type: 'grunt', count: 5, interval: 0.7 }] },
+            // Wave 2: 7 grunts
+            { groups: [{ type: 'grunt', count: 7, interval: 0.6 }] },
+            // Wave 3: 5 grunts + 2 golems
+            { groups: [
+                { type: 'grunt', count: 5, interval: 0.6 },
+                { type: 'golem', count: 2, interval: 1.8 },
+            ]},
+            // Wave 4: 6 grunts + 3 golems
+            { groups: [
+                { type: 'grunt', count: 6, interval: 0.5 },
+                { type: 'golem', count: 3, interval: 1.5 },
+            ]},
+            // Wave 5: 10 grunts + 3 golems + 4 wraiths
+            { groups: [
+                { type: 'grunt', count: 10, interval: 0.4 },
+                { type: 'golem', count: 3, interval: 1.5 },
+                { type: 'wraith', count: 4, interval: 0.8 },
+            ]},
+            // Wave 6: hp x1.3 — 8 grunts + 5 golems + 6 wraiths
+            { groups: [
+                { type: 'grunt', count: 8, interval: 0.4 },
+                { type: 'golem', count: 5, interval: 1.2 },
+                { type: 'wraith', count: 6, interval: 0.7 },
+            ], hpMultiplier: 1.3 },
+            // Wave 7: hp x1.5 — 12 grunts + 4 golems + 8 wraiths
+            { groups: [
+                { type: 'grunt', count: 12, interval: 0.35 },
+                { type: 'golem', count: 4, interval: 1.0 },
+                { type: 'wraith', count: 8, interval: 0.6 },
+            ], hpMultiplier: 1.5 },
+            // Wave 8: FINAL — hp x2.0, boss golem x3
+            { groups: [
+                { type: 'grunt', count: 15, interval: 0.3 },
+                { type: 'golem', count: 5, interval: 1.0 },
+                { type: 'wraith', count: 8, interval: 0.5 },
+                { type: 'golem', count: 1, interval: 0, hpMultiplier: 3 },
+            ], hpMultiplier: 2.0 },
+        ],
+    },
+    { id: 3, name: 'Мост отчаяния', mapX: 300, mapY: 400, locked: true },
+    { id: 4, name: 'Пустошь',       mapX: 100, mapY: 290, locked: true },
+    { id: 5, name: 'Логово босса',  mapX: 300, mapY: 180, locked: true },
+    { id: 6, name: '???',           mapX: 200, mapY: 80,  locked: true },
+];

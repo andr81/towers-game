@@ -9,7 +9,17 @@ class MapRenderer {
         app.stage.addChild(this.mapLayer);
     }
 
+    clearMap() {
+        while (this.mapLayer.children.length > 0) {
+            const child = this.mapLayer.children[0];
+            this.mapLayer.removeChild(child);
+            child.destroy();
+        }
+        this.spotGraphics = [];
+    }
+
     drawMap() {
+        this.clearMap();
         this._drawBackground();
         this._drawDecoration();
         this._drawRoad();
@@ -63,36 +73,42 @@ class MapRenderer {
 
     _drawRoad() {
         const road = new PIXI.Graphics();
-        const wp = CONFIG.PATH_WAYPOINTS;
+        const allPaths = CONFIG.ALL_PATHS || [CONFIG.PATH_WAYPOINTS];
 
-        // Road border (wider, darker)
-        road.moveTo(wp[0].x, wp[0].y);
-        for (let i = 1; i < wp.length; i++) {
-            road.lineTo(wp[i].x, wp[i].y);
+        for (const wp of allPaths) {
+            // Road border (wider, darker)
+            road.moveTo(wp[0].x, wp[0].y);
+            for (let i = 1; i < wp.length; i++) {
+                road.lineTo(wp[i].x, wp[i].y);
+            }
+            road.stroke({ width: CONFIG.ROAD_WIDTH + 6, color: CONFIG.ROAD_BORDER_COLOR, join: 'round', cap: 'round' });
         }
-        road.stroke({ width: CONFIG.ROAD_WIDTH + 6, color: CONFIG.ROAD_BORDER_COLOR, join: 'round', cap: 'round' });
 
-        // Road main
-        road.moveTo(wp[0].x, wp[0].y);
-        for (let i = 1; i < wp.length; i++) {
-            road.lineTo(wp[i].x, wp[i].y);
+        for (const wp of allPaths) {
+            // Road main
+            road.moveTo(wp[0].x, wp[0].y);
+            for (let i = 1; i < wp.length; i++) {
+                road.lineTo(wp[i].x, wp[i].y);
+            }
+            road.stroke({ width: CONFIG.ROAD_WIDTH, color: CONFIG.ROAD_COLOR, join: 'round', cap: 'round' });
         }
-        road.stroke({ width: CONFIG.ROAD_WIDTH, color: CONFIG.ROAD_COLOR, join: 'round', cap: 'round' });
 
-        // Road center line (dashes simulated with dots)
-        for (let seg = 0; seg < wp.length - 1; seg++) {
-            const a = wp[seg];
-            const b = wp[seg + 1];
-            const dx = b.x - a.x;
-            const dy = b.y - a.y;
-            const len = Math.sqrt(dx * dx + dy * dy);
-            const steps = Math.floor(len / 20);
-            for (let i = 0; i < steps; i += 2) {
-                const t = i / steps;
-                const px = a.x + dx * t;
-                const py = a.y + dy * t;
-                road.circle(px, py, 1.5);
-                road.fill({ color: 0xA09060, alpha: 0.4 });
+        for (const wp of allPaths) {
+            // Road center line (dashes simulated with dots)
+            for (let seg = 0; seg < wp.length - 1; seg++) {
+                const a = wp[seg];
+                const b = wp[seg + 1];
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const steps = Math.floor(len / 20);
+                for (let i = 0; i < steps; i += 2) {
+                    const t = i / steps;
+                    const px = a.x + dx * t;
+                    const py = a.y + dy * t;
+                    road.circle(px, py, 1.5);
+                    road.fill({ color: 0xA09060, alpha: 0.4 });
+                }
             }
         }
 

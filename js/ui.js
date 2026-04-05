@@ -15,7 +15,10 @@ class UI {
         this._buildHUD();
         this._buildBuildMenu();
         this._buildTowerPanel();
+        this._buildLevelSelectScreen();
         this._buildScreens();
+
+        this._pulseTicker = null;
     }
 
     // ---- HUD ----
@@ -323,6 +326,197 @@ class UI {
         this.selectedSpot = null;
     }
 
+    // ---- Level Select Screen ----
+    _buildLevelSelectScreen() {
+        this.levelSelectScreen = new PIXI.Container();
+        this.levelSelectScreen.visible = false;
+        this.uiLayer.addChild(this.levelSelectScreen);
+
+        // Background
+        const bg = new PIXI.Graphics();
+        bg.rect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
+        bg.fill(0x0a0a1a);
+        this.levelSelectScreen.addChild(bg);
+
+        // Title
+        const title = new PIXI.Text({
+            text: 'Замок Хаоса',
+            style: {
+                fontFamily: 'monospace',
+                fontSize: 32,
+                fill: 0xffffff,
+                fontWeight: 'bold',
+                align: 'center',
+                dropShadow: { color: 0x000000, blur: 4, distance: 2 },
+            },
+        });
+        title.anchor.set(0.5);
+        title.x = CONFIG.WIDTH / 2;
+        title.y = 40;
+        this.levelSelectScreen.addChild(title);
+
+        // Subtitle
+        const sub = new PIXI.Text({
+            text: 'Выбери уровень',
+            style: { fontFamily: 'monospace', fontSize: 14, fill: 0x777777 },
+        });
+        sub.anchor.set(0.5);
+        sub.x = CONFIG.WIDTH / 2;
+        sub.y = 68;
+        this.levelSelectScreen.addChild(sub);
+
+        // Path lines and dots will be rebuilt each time showLevelSelect is called
+        this._levelDotsContainer = new PIXI.Container();
+        this.levelSelectScreen.addChild(this._levelDotsContainer);
+    }
+
+    showLevelSelect() {
+        // Rebuild dots each time (progress may have changed)
+        while (this._levelDotsContainer.children.length > 0) {
+            const child = this._levelDotsContainer.children[0];
+            this._levelDotsContainer.removeChild(child);
+            child.destroy();
+        }
+
+        const gfx = new PIXI.Graphics();
+        this._levelDotsContainer.addChild(gfx);
+
+        this._pulseTargets = [];
+
+        // Draw connecting lines
+        for (let i = 0; i < LEVELS.length - 1; i++) {
+            const a = LEVELS[i];
+            const b = LEVELS[i + 1];
+            const unlocked = Progress.isLevelUnlocked(b.id);
+            gfx.moveTo(a.mapX, a.mapY);
+            gfx.lineTo(b.mapX, b.mapY);
+            gfx.stroke({ width: 3, color: unlocked ? 0x8B7355 : 0x333333, alpha: unlocked ? 0.8 : 0.4 });
+        }
+
+        // Draw level dots
+        for (const level of LEVELS) {
+            const unlocked = Progress.isLevelUnlocked(level.id);
+            const completed = Progress.isLevelCompleted(level.id);
+            const playable = !level.locked;
+
+            const dot = new PIXI.Container();
+            dot.x = level.mapX;
+            dot.y = level.mapY;
+
+            if (unlocked && playable) {
+                // Glow circle (for pulse animation on current level)
+                const glow = new PIXI.Graphics();
+                glow.circle(0, 0, 28);
+                glow.fill({ color: completed ? 0x2ecc71 : 0x3498db, alpha: 0.15 });
+                dot.addChild(glow);
+
+                // Main circle
+                const circle = new PIXI.Graphics();
+                circle.circle(0, 0, 22);
+                circle.fill(completed ? 0x2ecc71 : 0x2c3e50);
+                circle.circle(0, 0, 22);
+                circle.stroke({ width: 3, color: completed ? 0x27ae60 : 0x3498db });
+                dot.addChild(circle);
+
+                if (completed) {
+                    // Checkmark
+                    const check = new PIXI.Graphics();
+                    check.moveTo(-7, 0);
+                    check.lineTo(-2, 5);
+                    check.lineTo(7, -5);
+                    check.stroke({ width: 3, color: 0xffffff, cap: 'round', join: 'round' });
+                    dot.addChild(check);
+                } else {
+                    // Level number
+                    const num = new PIXI.Text({
+                        text: `${level.id}`,
+                        style: { fontFamily: 'monospace', fontSize: 16, fill: 0x3498db, fontWeight: 'bold' },
+                    });
+                    num.anchor.set(0.5);
+                    dot.addChild(num);
+
+                    // Pulse target
+                    this._pulseTargets.push(glow);
+                }
+
+                // Clickable
+                dot.eventMode = 'static';
+                dot.cursor = 'pointer';
+                dot.hitArea = new PIXI.Circle(0, 0, 28);
+                const lid = level.id;
+                dot.on('pointerdown', () => { this.game._uiClicked = true; this.game.selectLevel(lid); });
+            } else if (unlocked && !playable) {
+                // Unlocked but placeholder (locked content) — show as "coming soon"
+                const circle = new PIXI.Graphics();
+                circle.circle(0, 0, 18);
+                circle.fill(0x2c3e50);
+                circle.circle(0, 0, 18);
+                circle.stroke({ width: 2, color: 0x555555 });
+                dot.addChild(circle);
+
+                // Question mark
+                const qm = new PIXI.Text({
+                    text: '?',
+                    style: { fontFamily: 'monospace', fontSize: 14, fill: 0x555555, fontWeight: 'bold' },
+                });
+                qm.anchor.set(0.5);
+                dot.addChild(qm);
+            } else {
+                // Locked
+                const circle = new PIXI.Graphics();
+                circle.circle(0, 0, 18);
+                circle.fill(0x1a1a2e);
+                circle.circle(0, 0, 18);
+                circle.stroke({ width: 2, color: 0x333333 });
+                dot.addChild(circle);
+
+                // Lock icon
+                const lock = new PIXI.Graphics();
+                // Shackle (arc)
+                lock.arc(0, -3, 5, Math.PI, 0);
+                lock.stroke({ width: 2, color: 0x555555, cap: 'round' });
+                // Body
+                lock.roundRect(-6, -1, 12, 9, 2);
+                lock.fill(0x555555);
+                dot.addChild(lock);
+            }
+
+            // Level name label
+            const label = new PIXI.Text({
+                text: level.name,
+                style: { fontFamily: 'monospace', fontSize: 10, fill: unlocked ? 0xaaaaaa : 0x555555 },
+            });
+            label.anchor.set(0.5);
+            label.y = 32;
+            dot.addChild(label);
+
+            this._levelDotsContainer.addChild(dot);
+        }
+
+        this.levelSelectScreen.visible = true;
+
+        // Start pulse animation
+        if (this._pulseTicker) {
+            this.app.ticker.remove(this._pulseTicker);
+        }
+        this._pulseTicker = () => {
+            if (!this._pulseTargets) return;
+            const t = Date.now() * 0.003;
+            for (const glow of this._pulseTargets) {
+                glow.alpha = 0.1 + 0.15 * Math.sin(t);
+            }
+        };
+        this.app.ticker.add(this._pulseTicker);
+    }
+
+    hideLevelSelect() {
+        this.levelSelectScreen.visible = false;
+        if (this._pulseTicker) {
+            this.app.ticker.remove(this._pulseTicker);
+            this._pulseTicker = null;
+        }
+    }
+
     // ---- Game Screens ----
     _buildScreens() {
         this.startPhrases = {
@@ -344,6 +538,7 @@ class UI {
                 'Молнии мага выжгли всё.\nДаже траву жалко.',
             ],
             btns: ['Ещё разок', 'Повторить!', 'Давай ещё', 'Не остановить'],
+            btn2s: ['На карту', 'К карте!', 'Хватит пока'],
         };
         this.gameOverPhrases = {
             titles: ['Ну всё...', 'Упс', 'F', 'Ой'],
@@ -354,12 +549,22 @@ class UI {
                 'Пушки молчат, маги сбежали.\nЛучники перешли на сторону врага.',
             ],
             btns: ['Реванш!', 'Ещё попытка', 'Не сдамся!', 'Я злой теперь'],
+            btn2s: ['Отступить', 'На карту', 'Сбежать'],
         };
 
-        this.startScreen = this._createScreen(() => this.game.startGame());
-        this.victoryScreen = this._createScreen(() => this.game.restart());
+        this.startScreen = this._createScreen(
+            () => this.game.goToLevelSelect(),
+            null
+        );
+        this.victoryScreen = this._createScreen(
+            () => this.game.restart(),
+            () => this.game.goToLevelSelect()
+        );
         this.victoryScreen.visible = false;
-        this.gameOverScreen = this._createScreen(() => this.game.restart());
+        this.gameOverScreen = this._createScreen(
+            () => this.game.restart(),
+            () => this.game.goToLevelSelect()
+        );
         this.gameOverScreen.visible = false;
     }
 
@@ -371,9 +576,12 @@ class UI {
         screen._titleText.text = this._randomFrom(phrases.titles);
         screen._subText.text = this._randomFrom(phrases.subs);
         screen._btnLabel.text = this._randomFrom(phrases.btns);
+        if (screen._btn2Label && phrases.btn2s) {
+            screen._btn2Label.text = this._randomFrom(phrases.btn2s);
+        }
     }
 
-    _createScreen(onClick) {
+    _createScreen(onClick1, onClick2) {
         const screen = new PIXI.Container();
 
         // Overlay
@@ -417,33 +625,64 @@ class UI {
         screen._subText.y = CONFIG.HEIGHT / 2 - 5;
         screen.addChild(screen._subText);
 
-        // Button
-        const btn = new PIXI.Container();
-        const btnBg = new PIXI.Graphics();
-        btnBg.roundRect(-90, -22, 180, 44, 8);
-        btnBg.fill(0x2c3e50);
-        btnBg.roundRect(-90, -22, 180, 44, 8);
-        btnBg.stroke({ width: 2, color: 0x3498db });
-        btn.addChild(btnBg);
+        // Button 1 (primary)
+        const btn1 = new PIXI.Container();
+        const btn1Bg = new PIXI.Graphics();
+        btn1Bg.roundRect(-90, -22, 180, 44, 8);
+        btn1Bg.fill(0x2c3e50);
+        btn1Bg.roundRect(-90, -22, 180, 44, 8);
+        btn1Bg.stroke({ width: 2, color: 0x3498db });
+        btn1.addChild(btn1Bg);
 
         screen._btnLabel = new PIXI.Text({
             text: '',
             style: { fontFamily: 'monospace', fontSize: 18, fill: 0x3498db, fontWeight: 'bold' },
         });
         screen._btnLabel.anchor.set(0.5);
-        btn.addChild(screen._btnLabel);
+        btn1.addChild(screen._btnLabel);
 
-        btn.x = CONFIG.WIDTH / 2;
-        btn.y = CONFIG.HEIGHT / 2 + 70;
-        btn.eventMode = 'static';
-        btn.cursor = 'pointer';
-        btn.hitArea = new PIXI.Rectangle(-90, -22, 180, 44);
+        btn1.x = CONFIG.WIDTH / 2;
+        btn1.y = onClick2 ? CONFIG.HEIGHT / 2 + 55 : CONFIG.HEIGHT / 2 + 70;
+        btn1.eventMode = 'static';
+        btn1.cursor = 'pointer';
+        btn1.hitArea = new PIXI.Rectangle(-90, -22, 180, 44);
 
-        btn.on('pointerover', () => { btnBg.tint = 0x44aaff; });
-        btn.on('pointerout', () => { btnBg.tint = 0xffffff; });
-        btn.on('pointerdown', (e) => { this.game._uiClicked = true; onClick(); });
+        btn1.on('pointerover', () => { btn1Bg.tint = 0x44aaff; });
+        btn1.on('pointerout', () => { btn1Bg.tint = 0xffffff; });
+        btn1.on('pointerdown', () => { this.game._uiClicked = true; onClick1(); });
 
-        screen.addChild(btn);
+        screen.addChild(btn1);
+
+        // Button 2 (secondary — "На карту")
+        if (onClick2) {
+            const btn2 = new PIXI.Container();
+            const btn2Bg = new PIXI.Graphics();
+            btn2Bg.roundRect(-90, -18, 180, 36, 6);
+            btn2Bg.fill({ color: 0x1a1a2e, alpha: 0.9 });
+            btn2Bg.roundRect(-90, -18, 180, 36, 6);
+            btn2Bg.stroke({ width: 1, color: 0x777777 });
+            btn2.addChild(btn2Bg);
+
+            screen._btn2Label = new PIXI.Text({
+                text: '',
+                style: { fontFamily: 'monospace', fontSize: 14, fill: 0x999999 },
+            });
+            screen._btn2Label.anchor.set(0.5);
+            btn2.addChild(screen._btn2Label);
+
+            btn2.x = CONFIG.WIDTH / 2;
+            btn2.y = CONFIG.HEIGHT / 2 + 110;
+            btn2.eventMode = 'static';
+            btn2.cursor = 'pointer';
+            btn2.hitArea = new PIXI.Rectangle(-90, -18, 180, 36);
+
+            btn2.on('pointerover', () => { btn2Bg.tint = 0xcccccc; });
+            btn2.on('pointerout', () => { btn2Bg.tint = 0xffffff; });
+            btn2.on('pointerdown', () => { this.game._uiClicked = true; onClick2(); });
+
+            screen.addChild(btn2);
+        }
+
         this.uiLayer.addChild(screen);
         return screen;
     }
@@ -469,5 +708,6 @@ class UI {
         this.startScreen.visible = false;
         this.victoryScreen.visible = false;
         this.gameOverScreen.visible = false;
+        this.hideLevelSelect();
     }
 }

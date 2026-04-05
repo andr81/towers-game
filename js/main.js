@@ -2,7 +2,7 @@
 // main.js — Game initialization, state machine, game loop
 // ============================================================
 
-const STATES = { MENU: 'menu', PLAYING: 'playing', WON: 'won', LOST: 'lost' };
+const STATES = { MENU: 'menu', LEVEL_SELECT: 'level_select', PLAYING: 'playing', WON: 'won', LOST: 'lost' };
 
 class Game {
     constructor() {
@@ -16,6 +16,7 @@ class Game {
         this.spawnQueue = [];
         this.spawnTimer = 0;
         this.allWavesSpawned = false;
+        this.currentLevelId = null;
 
         // Layers and managers
         this.mapRenderer = null;
@@ -25,6 +26,7 @@ class Game {
         this.towerManager = null;
         this.projectileManager = null;
         this.path = null;
+        this.paths = [];
         this.ui = null;
     }
 
@@ -43,12 +45,12 @@ class Game {
         this._resize();
         window.addEventListener('resize', () => this._resize());
 
-        // Set up path
-        this.path = new Path(CONFIG.PATH_WAYPOINTS);
+        // Paths will be created per level in loadLevel()
+        this.path = null;
+        this.paths = [];
 
-        // Set up map renderer
+        // Set up map renderer (don't draw yet — drawn on level load)
         this.mapRenderer = new MapRenderer(this.app);
-        this.mapRenderer.drawMap();
 
         // Game layer (enemies, towers, projectiles)
         this.gameLayer = new PIXI.Container();
@@ -57,6 +59,11 @@ class Game {
         // Effects layer (AoE, etc)
         this.effectsLayer = new PIXI.Container();
         this.app.stage.addChild(this.effectsLayer);
+
+        // Hide game layers until a level is loaded
+        this.mapRenderer.mapLayer.visible = false;
+        this.gameLayer.visible = false;
+        this.effectsLayer.visible = false;
 
         // Managers
         this.enemyManager = new EnemyManager(this.gameLayer);
@@ -139,12 +146,78 @@ class Game {
         this.ui.closePanels();
     }
 
+    goToLevelSelect() {
+        // Clear game entities
+        this.enemyManager.clear();
+        this.towerManager.clear();
+        this.projectileManager.clear();
+        this.ui.closePanels();
+
+        // Hide game layers
+        this.mapRenderer.mapLayer.visible = false;
+        this.gameLayer.visible = false;
+        this.effectsLayer.visible = false;
+        this.ui.hudContainer.visible = false;
+
+        this.state = STATES.LEVEL_SELECT;
+        this.ui.hideScreens();
+        this.ui.showLevelSelect();
+    }
+
+    loadLevel(levelId) {
+        const level = LEVELS.find(l => l.id === levelId);
+        if (!level || level.locked) return;
+
+        // Copy level data into CONFIG
+        CONFIG.TOWER_SPOTS = level.towerSpots;
+        CONFIG.CASTLE = level.castle;
+        CONFIG.WAVES = level.waves;
+        CONFIG.TOTAL_WAVES = level.waves.length;
+        CONFIG.START_GOLD = level.startGold;
+        CONFIG.START_LIVES = level.startLives;
+        CONFIG.WAVE_COUNTDOWN = level.waveCountdown;
+        CONFIG.FIRST_WAVE_COUNTDOWN = level.firstWaveCountdown;
+
+        // Normalize paths: support single path (pathWaypoints) or multiple (paths)
+        const pathArrays = level.paths || [level.pathWaypoints];
+        CONFIG.ALL_PATHS = pathArrays;
+        CONFIG.PATH_WAYPOINTS = pathArrays[0];
+
+        // Rebuild paths
+        this.paths = pathArrays.map(wp => new Path(wp));
+        this.path = this.paths[0];
+
+        // Redraw map
+        this.mapRenderer.drawMap();
+
+        this.currentLevelId = levelId;
+    }
+
+    selectLevel(levelId) {
+        const level = LEVELS.find(l => l.id === levelId);
+        if (!level || level.locked || !Progress.isLevelUnlocked(levelId)) return;
+
+        this.ui.hideLevelSelect();
+        this.loadLevel(levelId);
+        this.startGame();
+    }
+
     startGame() {
+        // Show game layers
+        this.mapRenderer.mapLayer.visible = true;
+        this.gameLayer.visible = true;
+        this.effectsLayer.visible = true;
+        this.ui.hudContainer.visible = true;
+
         this.state = STATES.PLAYING;
         this.ui.hideScreens();
+        this.gold = CONFIG.START_GOLD;
+        this.lives = CONFIG.START_LIVES;
         this.waveTimer = CONFIG.FIRST_WAVE_COUNTDOWN;
         this.currentWave = 0;
         this.allWavesSpawned = false;
+        this.waveSpawning = false;
+        this.spawnQueue = [];
     }
 
     restart() {
@@ -158,6 +231,12 @@ class Game {
         for (const spot of CONFIG.TOWER_SPOTS) {
             this.mapRenderer.showSpot(spot);
         }
+
+        // Ensure game layers visible
+        this.mapRenderer.mapLayer.visible = true;
+        this.gameLayer.visible = true;
+        this.effectsLayer.visible = true;
+        this.ui.hudContainer.visible = true;
 
         // Reset state
         this.gold = CONFIG.START_GOLD;
@@ -257,7 +336,8 @@ class Game {
         this.spawnTimer -= dt;
         if (this.spawnTimer <= 0) {
             const entry = this.spawnQueue.shift();
-            this.enemyManager.spawn(entry.type, this.path, entry.hpMultiplier);
+            const spawnPath = this.paths[Math.floor(Math.random() * this.paths.length)];
+            this.enemyManager.spawn(entry.type, spawnPath, entry.hpMultiplier);
 
             if (this.spawnQueue.length > 0) {
                 this.spawnTimer = this.spawnQueue[0].delay;
@@ -316,6 +396,7 @@ class Game {
         // Check victory: all waves spawned and no enemies left
         if (this.allWavesSpawned && !this.waveSpawning && this.enemyManager.enemies.length === 0) {
             this.state = STATES.WON;
+            Progress.completeLevel(this.currentLevelId);
             this.ui.showVictory();
             return;
         }
