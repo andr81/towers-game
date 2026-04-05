@@ -100,14 +100,14 @@ const CONFIG = {
             projectileColor: 0xf1c40f,
             upgrades: [
                 { damage: 15, attackSpeed: 0.25, range: 105, cost: 33 },
-                { damage: 22, attackSpeed: 0.2, range: 115, cost: 50 },
+                { damage: 22, attackSpeed: 0.16, range: 138, cost: 50, multishot: 2 },
             ],
         },
         cannon: {
             name: 'Бабах',
             cost: 83,
             range: 110,
-            damage: 60,
+            damage: 66,
             attackSpeed: 1.5,
             canHitFlying: false,
             color: 0xe67e22,
@@ -115,8 +115,8 @@ const CONFIG = {
             projectileColor: 0xe74c3c,
             aoeRadius: 0, // level 1: no AoE
             upgrades: [
-                { damage: 90, range: 125, cost: 50, aoeRadius: 0 },
-                { damage: 130, range: 140, cost: 77, aoeRadius: 35 },
+                { damage: 99, range: 125, cost: 50, aoeRadius: 0 },
+                { damage: 172, range: 140, cost: 77, aoeRadius: 35 },
             ],
         },
         mage: {
@@ -132,7 +132,7 @@ const CONFIG = {
             slowFactor: 0, // level 1: no slow
             upgrades: [
                 { damage: 35, chainTargets: 4, range: 130, cost: 79, slowFactor: 0 },
-                { damage: 50, chainTargets: 5, range: 140, cost: 121, slowFactor: 0.4 },
+                { damage: 50, chainTargets: 5, range: 140, cost: 121, slowFactor: 0.55 },
             ],
         },
     },
@@ -298,7 +298,7 @@ const LEVELS = [
         id: 2,
         name: 'Тёмный лес',
         mapX: 100, mapY: 500,
-        startGold: 210,
+        startGold: 360,
         startLives: 4,
         waveCountdown: 5,
         firstWaveCountdown: 5,
@@ -331,14 +331,18 @@ const LEVELS = [
             // Top — shared entry
             { x: 120, y: 55 },
             { x: 280, y: 55 },
-            // Left branch
-            { x: 155, y: 230 },
+            // Center top — at the fork, covers both paths
+            { x: 200, y: 130 },
+            // Left branch (upper moved closer to path)
+            { x: 130, y: 230 },
             { x: 155, y: 400 },
             { x: 155, y: 520 },
-            // Right branch
-            { x: 245, y: 230 },
+            // Right branch (upper moved closer to path)
+            { x: 270, y: 230 },
             { x: 245, y: 400 },
             { x: 245, y: 520 },
+            // Center bottom — between paths at the bend, covers both
+            { x: 200, y: 440 },
             // Bottom — convergence
             { x: 120, y: 640 },
             { x: 280, y: 640 },
@@ -358,34 +362,123 @@ const LEVELS = [
                 { type: 'grunt', count: 6, interval: 0.5 },
                 { type: 'golem', count: 3, interval: 1.5 },
             ]},
-            // Wave 5: 10 grunts + 3 golems + 4 wraiths
+            // Wave 5: 9 grunts + 3 golems + 4 wraiths
             { groups: [
-                { type: 'grunt', count: 10, interval: 0.4 },
+                { type: 'grunt', count: 9, interval: 0.4 },
                 { type: 'golem', count: 3, interval: 1.5 },
                 { type: 'wraith', count: 4, interval: 0.8 },
             ]},
-            // Wave 6: hp x1.3 — 8 grunts + 5 golems + 6 wraiths
+            // Wave 6: hp x1.3 — 6 grunts + 4 golems + 4 wraiths
             { groups: [
-                { type: 'grunt', count: 8, interval: 0.4 },
-                { type: 'golem', count: 5, interval: 1.2 },
-                { type: 'wraith', count: 6, interval: 0.7 },
+                { type: 'grunt', count: 6, interval: 0.4 },
+                { type: 'golem', count: 4, interval: 1.2 },
+                { type: 'wraith', count: 4, interval: 0.7 },
             ], hpMultiplier: 1.3 },
-            // Wave 7: hp x1.5 — 12 grunts + 4 golems + 8 wraiths
+            // Wave 7: hp x1.5 — 10 grunts + 4 golems + 6 wraiths
             { groups: [
-                { type: 'grunt', count: 12, interval: 0.35 },
+                { type: 'grunt', count: 10, interval: 0.35 },
                 { type: 'golem', count: 4, interval: 1.0 },
-                { type: 'wraith', count: 8, interval: 0.6 },
+                { type: 'wraith', count: 6, interval: 0.6 },
             ], hpMultiplier: 1.5 },
             // Wave 8: FINAL — hp x2.0, boss golem x3
             { groups: [
-                { type: 'grunt', count: 15, interval: 0.3 },
-                { type: 'golem', count: 5, interval: 1.0 },
-                { type: 'wraith', count: 8, interval: 0.5 },
+                { type: 'grunt', count: 13, interval: 0.3 },
+                { type: 'golem', count: 3, interval: 1.0 },
+                { type: 'wraith', count: 6, interval: 0.5 },
                 { type: 'golem', count: 1, interval: 0, hpMultiplier: 3 },
             ], hpMultiplier: 2.0 },
         ],
     },
-    { id: 3, name: 'Мост отчаяния', mapX: 300, mapY: 400, locked: true },
+    {
+        id: 3,
+        name: 'Мост отчаяния',
+        mapX: 300, mapY: 400,
+        startGold: 280,
+        startLives: 3,
+        waveCountdown: 3,
+        firstWaveCountdown: 4,
+        castle: { x: 200, y: 750 },
+        pathWaypoints: [
+            { x: 200, y: -20 },
+            { x: 200, y: 750 },
+        ],
+        towerSpots: [
+            // Left side of the bridge
+            { x: 120, y: 80 },
+            { x: 120, y: 200 },
+            { x: 120, y: 330 },
+            { x: 120, y: 460 },
+            { x: 120, y: 590 },
+            { x: 120, y: 700 },
+            // Right side of the bridge
+            { x: 280, y: 80 },
+            { x: 280, y: 200 },
+            { x: 280, y: 330 },
+            { x: 280, y: 460 },
+            { x: 280, y: 590 },
+            { x: 280, y: 700 },
+        ],
+        waves: [
+            // Wave 1: light rush
+            { groups: [{ type: 'grunt', count: 10, interval: 0.4 }] },
+            // Wave 2: more grunts
+            { groups: [{ type: 'grunt', count: 14, interval: 0.35 }] },
+            // Wave 3: grunts + wraiths rush
+            { groups: [
+                { type: 'grunt', count: 10, interval: 0.35 },
+                { type: 'wraith', count: 5, interval: 0.6 },
+            ]},
+            // Wave 4: first golems — slow wall
+            { groups: [
+                { type: 'golem', count: 4, interval: 1.2 },
+                { type: 'grunt', count: 8, interval: 0.3 },
+            ]},
+            // Wave 5: wraith swarm
+            { groups: [
+                { type: 'wraith', count: 12, interval: 0.4 },
+            ]},
+            // Wave 6: mixed rush
+            { groups: [
+                { type: 'grunt', count: 12, interval: 0.25 },
+                { type: 'golem', count: 3, interval: 1.5 },
+                { type: 'wraith', count: 6, interval: 0.5 },
+            ]},
+            // Wave 7: golem wall + grunt flood
+            { groups: [
+                { type: 'golem', count: 6, interval: 0.8 },
+                { type: 'grunt', count: 15, interval: 0.2 },
+            ], hpMultiplier: 1.2 },
+            // Wave 8: flying assault
+            { groups: [
+                { type: 'wraith', count: 14, interval: 0.35 },
+                { type: 'grunt', count: 8, interval: 0.3 },
+            ], hpMultiplier: 1.3 },
+            // Wave 9: heavy mixed
+            { groups: [
+                { type: 'grunt', count: 16, interval: 0.2 },
+                { type: 'golem', count: 5, interval: 1.0 },
+                { type: 'wraith', count: 8, interval: 0.4 },
+            ], hpMultiplier: 1.4 },
+            // Wave 10: double rush
+            { groups: [
+                { type: 'grunt', count: 20, interval: 0.15 },
+                { type: 'wraith', count: 10, interval: 0.3 },
+            ], hpMultiplier: 1.5 },
+            // Wave 11: golem stampede
+            { groups: [
+                { type: 'golem', count: 10, interval: 0.6 },
+                { type: 'grunt', count: 12, interval: 0.2 },
+                { type: 'wraith', count: 8, interval: 0.4 },
+            ], hpMultiplier: 1.7 },
+            // Wave 12: FINAL — everything at once
+            { groups: [
+                { type: 'grunt', count: 25, interval: 0.12 },
+                { type: 'golem', count: 8, interval: 0.7 },
+                { type: 'wraith', count: 12, interval: 0.3 },
+                { type: 'golem', count: 2, interval: 0, hpMultiplier: 3 },
+            ], hpMultiplier: 2.0 },
+        ],
+    },
     { id: 4, name: 'Пустошь',       mapX: 100, mapY: 290, locked: true },
     { id: 5, name: 'Логово босса',  mapX: 300, mapY: 180, locked: true },
     { id: 6, name: '???',           mapX: 200, mapY: 80,  locked: true },

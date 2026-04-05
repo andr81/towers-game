@@ -25,6 +25,7 @@ class Tower {
         this.slowFactor = def.slowFactor || 0;
         this.projectileSpeed = def.projectileSpeed || 6;
         this.projectileColor = def.projectileColor;
+        this.multishot = def.multishot || 1;
 
         // Total gold invested (for sell calculation)
         this.totalInvested = def.cost;
@@ -134,6 +135,7 @@ class Tower {
         if (upg.aoeRadius !== undefined) this.aoeRadius = upg.aoeRadius;
         if (upg.chainTargets !== undefined) this.chainTargets = upg.chainTargets;
         if (upg.slowFactor !== undefined) this.slowFactor = upg.slowFactor;
+        if (upg.multishot !== undefined) this.multishot = upg.multishot;
 
         this._buildGraphics();
         this._drawRangeCircle(false);
@@ -196,6 +198,27 @@ class Tower {
 
         if (this.type === 'archer') {
             projectileManager.spawnArrow(from, target, this.damage);
+            if (this.multishot > 1) {
+                const used = new Set([target]);
+                for (let i = 1; i < this.multishot; i++) {
+                    let best = null;
+                    let bestDist = Infinity;
+                    for (const e of enemies) {
+                        if (!e.alive || used.has(e)) continue;
+                        if (e.flying && !this.canHitFlying) continue;
+                        const dx = e.container.x - this.x;
+                        const dy = e.container.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist <= this.range && dist < bestDist) {
+                            best = e;
+                            bestDist = dist;
+                        }
+                    }
+                    if (!best) break;
+                    used.add(best);
+                    projectileManager.spawnArrow(from, best, this.damage);
+                }
+            }
         } else if (this.type === 'cannon') {
             projectileManager.spawnCannonball(from, target, this.damage, this.aoeRadius);
         } else if (this.type === 'mage') {

@@ -94,16 +94,19 @@ class Cannonball extends Projectile {
 
     hit() {
         if (this.aoeRadius > 0 && this.target.alive) {
-            // AoE damage
+            // AoE damage — full to target, falloff by distance for others
             const tx = this.target.container.x;
             const ty = this.target.container.y;
+            this.target.takeDamage(this.damage);
             const enemies = window.game.enemyManager.getAliveEnemies();
             for (const e of enemies) {
-                if (e.flying) continue;
+                if (e === this.target || e.flying) continue;
                 const dx = e.container.x - tx;
                 const dy = e.container.y - ty;
-                if (Math.sqrt(dx * dx + dy * dy) <= this.aoeRadius) {
-                    e.takeDamage(this.damage);
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= this.aoeRadius) {
+                    const falloff = 1 - dist / this.aoeRadius;
+                    e.takeDamage(Math.round(this.damage * falloff));
                 }
             }
             // Spawn AoE visual
